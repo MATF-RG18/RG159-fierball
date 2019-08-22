@@ -17,7 +17,7 @@ public:
                 _xPos = +500.0;
                 break;
         }
-            _yPos = 0;
+            _yPos = -60.0;
             _zPos = 0;
         }
 

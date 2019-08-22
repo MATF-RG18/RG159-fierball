@@ -1,4 +1,5 @@
 #include "Playground.h"
+#include "Helpers.h"
 
 void Playground::drawField()
 {
@@ -13,9 +14,24 @@ void Playground::drawField()
 
 void Playground::drawGrass() 
 {
+    glEnable(GL_LIGHTING);
+        //preuzeo sa neta neku boju sto lici na zelenu
+    //GLfloat ambijentMaterijala[] = {0.135, 0.2225, 0.1575, 0.95};
+    GLfloat ambijentMaterijala[] = {0.0, 1.0, 0.0, 1.0};
+    GLfloat difuznoMaterijala[] = {0.54, 0.89, 0.63, 0.95};
+    GLfloat spekularnoMaterijala[] = {0.316228, 0.316228, 0.316228, 0.95};
+    GLfloat emisionoMaterijala[] = {0, 0, 0, 0};
+    GLfloat sajnes = 12.8;
+    
+    glMaterialfv(GL_FRONT, GL_AMBIENT, ambijentMaterijala);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, difuznoMaterijala);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, spekularnoMaterijala);
+    glMaterialf(GL_FRONT, GL_SHININESS, sajnes);
+    glMaterialfv(GL_FRONT, GL_EMISSION, emisionoMaterijala);
+    
     const float xCor = 800.0, yCor = 350.0, zCor = 0;
     glPushMatrix();
-        glColor3f(0, 1, 0);
+        //glColor3f(0, 1, 0);
         glBegin(GL_POLYGON);
             glVertex3f(-xCor, -yCor, zCor);
             glVertex3f(xCor, -yCor, zCor);
@@ -23,6 +39,7 @@ void Playground::drawGrass()
             glVertex3f(-xCor, yCor, zCor);
         glEnd();
     glPopMatrix();
+    glDisable(GL_LIGHTING);
 }
 
 void Playground::drawLines() 
@@ -74,7 +91,7 @@ void Playground::drawLines()
         float theta, xHelp, yHelp;
         glBegin(GL_LINE_LOOP);
         for (int ii = 0; ii < 100; ii++) {
-            theta = 2.0f * 3.1415926f * float(ii) / float(100);
+            theta = 2.0f * pi * float(ii) / float(100);
             xHelp = r * cosf(theta);
             yHelp = r * sinf(theta);
             glVertex3f(xHelp + cx, yHelp + cy, zCor);
