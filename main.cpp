@@ -13,6 +13,7 @@ static int trying = 0;
 static void WriteStartScreen(void);
 static void WriteEndScreen(char* winner);
 static void WritePoints(void);
+static void WriteGoalScored();
 static void ConvertIntToChar(int x, char *s);
 static void RevertString(char *s, int n);
 
@@ -21,6 +22,12 @@ static float hours;
 
 /* Fleg koji odredjuje stanje tajmera. */
 static int timer_active;
+
+/*Postignut gol tajmer*/
+static int goal_timer = 101;
+
+/*Tekst koji ce pisati za pobednika*/
+char* winnerText;
 
 /* Deklaracije callback funkcija. */
 static void on_keyboard(unsigned char key, int x, int y);
@@ -106,6 +113,22 @@ static void on_keyboard(unsigned char key, int x, int y)
         if (playerOne.getXPos() >= -595.0)
             playerTwo.setXPos(playerTwo.getXPos() - 5.0);
         break;
+    case 'w':
+    case 'W':
+        if(playerOne.getPlayerJumpState() == playerJumpState::GROUND)
+        {
+            playerOne.setPlayerJumpState(playerJumpState::UP);
+        }
+        break;
+    case 'i':
+    case 'I':
+        if(playerTwo.getPlayerJumpState() == playerJumpState::GROUND)
+        {
+            playerTwo.setPlayerJumpState(playerJumpState::UP);
+        }
+        break;
+    default:
+        break;
     }
 }
 
@@ -122,25 +145,57 @@ static void on_timer(int value)
     
     if(game.GetGameState() == gameState::GAME_PLAYING)
     {
+        ball.CheckHeadCollision(playerOne.getXPos(), playerOne.getYPos());
+        ball.CheckHeadCollision(playerTwo.getXPos(), playerTwo.getYPos());
+        ball.CheckBodyCollision(playerOne.getXPos(), playerOne.getYPos());
+        ball.CheckBodyCollision(playerTwo.getXPos(), playerTwo.getYPos());
+        if(goal_timer < 101 && goal_timer > 0)
+        {
+            ball.setXSpeed(6.0);
+            ball.setYSpeed(-12.1);
+        }
         ball.Update();
+        playerOne.PlayerJumpUpdate();
+        playerTwo.PlayerJumpUpdate();
     };
     
-    if(game.GetGameState() == gameState::GAME_PLAYING)
-    {
-    trying++;
-    
-    if(trying %100 == 0)
-    {
-        game.IncreasePlayerAScore();
-    }
-    }
-    
-    if(game.GetPlayerAScore() >= 3)
+    if(game.GetPlayerAScore() == 3 && goal_timer == 0)
     {
         game.SetGameState(gameState::GAME_END);
         game.SetPlayerAScore(0);
         timer_active = 0;
+        winnerText = "PLAYER 1 WINS";
     };
+    
+    if(game.GetPlayerBScore() == 3 && goal_timer == 0)
+    {
+        game.SetGameState(gameState::GAME_END);
+        game.SetPlayerBScore(0);
+        timer_active = 0;
+        winnerText = "PLAYER 2 WINS";
+    };
+    
+    if(goal_timer == 0)
+    {
+        goal_timer = 101;
+        ball.Reset();
+        playerOne.Reset();
+        playerTwo.Reset();
+    }
+    
+    if(ball.getPlayerAGoal() == true && goal_timer == 101)
+    {
+        goal_timer = 100;
+        game.IncreasePlayerAScore();
+        ball.setPlayerAGoal(false);
+    }
+    
+    if(ball.getPlayerBGoal() == true && goal_timer == 101)
+    {
+        goal_timer = 100;
+        game.IncreasePlayerBScore();
+        ball.setPlayerBGoal(false);
+    }
 
     /* Forsira se ponovno iscrtavanje prozora. */
     glutPostRedisplay();
@@ -191,6 +246,12 @@ static void on_display(void)
         WritePoints();
     };
     
+    if(goal_timer > 0 && goal_timer <= 100)
+    {
+        WriteGoalScored();
+        goal_timer--;
+    }
+    
     if(game.GetGameState() == gameState::GAME_START)
     {
         WriteStartScreen();
@@ -199,7 +260,7 @@ static void on_display(void)
     //trying TODO
     if(game.GetGameState() == gameState::GAME_END)
     {
-        WriteEndScreen("PLAYER 1 WINS");
+        WriteEndScreen(winnerText);
     };
     
 
@@ -247,6 +308,21 @@ static void WriteEndScreen(char* winner)
     char p[] = "PRESS 'ESC' TO EXIT";
     for(i = 0; p[i] != '\0'; i++)
         glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, p[i]);
+    
+	//glEnable(GL_LIGHTING);
+}
+
+static void WriteGoalScored()
+{
+    //glDisable(GL_LIGHTING);
+    //glClearColor(0, 0, 0);
+	glColor3f(1, 1, 1);    
+    int i;
+    
+    glRasterPos3f(StartScreenXPosition, StartScreenYPositionLine_1, StartScreenZPosition);
+    char s[] = "GOOOOOOOOAAAAAAAAALLL";
+    for(i = 0; s[i] != '\0'; i++)
+        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, s[i]);
     
 	//glEnable(GL_LIGHTING);
 }

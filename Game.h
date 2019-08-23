@@ -20,6 +20,7 @@ public:
     int GetPlayerBScore () { return _playerBScore; };
     
     void SetPlayerAScore(int value) {_playerAScore = value; };
+    void SetPlayerBScore(int value) {_playerBScore = value; };
     
     void IncreasePlayerAScore() { _playerAScore++; };
     void IncreasePlayerBScore() { _playerBScore++; };

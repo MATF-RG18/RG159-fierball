@@ -1,7 +1,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include <GL/glut.h>
-#pragma once
+#include "Helpers.h"
+
 class Player
 {
 public:
@@ -19,7 +20,24 @@ public:
         }
             _yPos = -60.0;
             _zPos = 0;
+            _playerJumpState = playerJumpState::GROUND;
         }
+        
+    void Reset()
+    {
+        switch (_playerNumber)
+        {
+            case 1:
+                _xPos = -500.0;
+                break;
+            case 2:
+                _xPos = +500.0;
+                break;
+        }
+            _yPos = -60.0;
+            _zPos = 0;
+            _playerJumpState = playerJumpState::GROUND;
+    }
 
     void drawPlayer();
 
@@ -32,6 +50,8 @@ public:
 
     void drawBody();
     void drawLegs();
+    
+    void PlayerJumpUpdate();
 
     //getters and setters
     float getXPos() { return _xPos; }
@@ -40,10 +60,14 @@ public:
     void setYPos(float y) { _yPos = y; }
     float getZPos() { return _zPos; }
     void setZPos(float z) { _zPos = z; }
+    
+    void setPlayerJumpState(playerJumpState value) { _playerJumpState = value; }
+    playerJumpState getPlayerJumpState() { return _playerJumpState; }
+    
 private:
     float _xPos;
     float _yPos;
     float _zPos;
     int _playerNumber;
+    playerJumpState _playerJumpState;
 };
-

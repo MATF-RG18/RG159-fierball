@@ -1,5 +1,4 @@
 #include "Player.h"
-#include "Helpers.h"
 
 void Player::drawPlayer() 
 {
@@ -46,7 +45,29 @@ void Player::drawHead()
     glPopMatrix();
 }
 
-void Player::drawEyebrows() 
+void Player::PlayerJumpUpdate()
 {
-
+    if(_playerJumpState == playerJumpState::GROUND)
+        return;
+    
+    if(_playerJumpState == playerJumpState::UP)
+    {
+        _yPos+=10;
+    }
+    
+    if(_playerJumpState == playerJumpState::DOWN)
+    {
+        _yPos-=15;
+    }
+    
+    if(_yPos >= 100.0)
+    {
+        _playerJumpState = playerJumpState::DOWN;
+    }
+    
+    if(_yPos < -60.0)
+    {
+        _playerJumpState = playerJumpState::GROUND;
+        _yPos = -60.0;
+    }
 }
