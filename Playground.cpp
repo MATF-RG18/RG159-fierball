@@ -14,7 +14,7 @@ void Playground::drawField()
 
 void Playground::drawGrass() 
 {
-    glEnable(GL_LIGHTING);
+    /*glEnable(GL_LIGHTING);
         //preuzeo sa neta neku boju sto lici na zelenu
     //GLfloat ambijentMaterijala[] = {0.135, 0.2225, 0.1575, 0.95};
     GLfloat ambijentMaterijala[] = {0.0, 1.0, 0.0, 1.0};
@@ -27,11 +27,11 @@ void Playground::drawGrass()
     glMaterialfv(GL_FRONT, GL_DIFFUSE, difuznoMaterijala);
     glMaterialfv(GL_FRONT, GL_SPECULAR, spekularnoMaterijala);
     glMaterialf(GL_FRONT, GL_SHININESS, sajnes);
-    glMaterialfv(GL_FRONT, GL_EMISSION, emisionoMaterijala);
+    glMaterialfv(GL_FRONT, GL_EMISSION, emisionoMaterijala);*/
     
-    const float xCor = 800.0, yCor = 350.0, zCor = 0;
+    const float xCor = 1400.0, yCor = 350.0, zCor = 0;
     glPushMatrix();
-        //glColor3f(0, 1, 0);
+        glColor3f(0, 1, 0);
         glBegin(GL_POLYGON);
             glVertex3f(-xCor, -yCor, zCor);
             glVertex3f(xCor, -yCor, zCor);
@@ -39,11 +39,12 @@ void Playground::drawGrass()
             glVertex3f(-xCor, yCor, zCor);
         glEnd();
     glPopMatrix();
-    glDisable(GL_LIGHTING);
+    //glDisable(GL_LIGHTING);
 }
 
 void Playground::drawLines() 
 {
+    glDisable(GL_LIGHTING);
     const float xCor = 600.0, yCor = 260.0, zCor = 0.5;
     const float xCor16 = 400.0, yCor16 = 190.0;
     glPushMatrix();
@@ -127,6 +128,8 @@ void Playground::drawLines()
         glPopMatrix();
 
     glPopMatrix();
+    
+    glEnable(GL_LIGHTING);
 }
 
 void Playground::drawGoals() 
@@ -142,14 +145,14 @@ void Playground::drawGoals()
             glTranslatef(-100, 0, 0);
             glColor3f(1, 1, 1);
             GLUquadric* quad = gluNewQuadric();
-            gluCylinder(quad, cylinderWidth, cylinderWidth, 300, 50, 50);
+            gluCylinder(quad, cylinderWidth, cylinderWidth, 300, 50, 50); //bliza
         glPopMatrix();
 
         glPushMatrix();
             glTranslatef(100, 0, 0);
             glColor3f(1, 1, 1);
             quad = gluNewQuadric();
-            gluCylinder(quad, cylinderWidth, cylinderWidth, 300, 50, 50);
+            gluCylinder(quad, cylinderWidth, cylinderWidth, 300, 50, 50); //dalja
         glPopMatrix();
 
         glPushMatrix();
@@ -159,6 +162,23 @@ void Playground::drawGoals()
             quad = gluNewQuadric();
             gluCylinder(quad, cylinderWidth, cylinderWidth, 200, 50, 50);
         glPopMatrix();
+        
+        glPushMatrix();
+            glTranslatef(-100, 150, 0);
+            glColor3f(1, 1, 1);
+            quad = gluNewQuadric();
+            glRotatef(27, 1, 0, 0);
+            gluCylinder(quad, cylinderWidth, cylinderWidth, 330, 50, 50); //bliza
+        glPopMatrix();
+        
+        glPushMatrix();
+            glTranslatef(100, 150, 0);
+            glColor3f(1, 1, 1);
+            quad = gluNewQuadric();
+            glRotatef(27, 1, 0, 0);
+            gluCylinder(quad, cylinderWidth, cylinderWidth, 330, 50, 50); //dalja
+        glPopMatrix();
+        
         glPopMatrix();
 
     glPopMatrix();
@@ -190,6 +210,23 @@ void Playground::drawGoals()
             quad = gluNewQuadric();
             gluCylinder(quad, cylinderWidth, cylinderWidth, 200, 50, 50);
         glPopMatrix();
+        
+        glPushMatrix();
+            glTranslatef(-100, -150, 0);
+            glColor3f(1, 1, 1);
+            quad = gluNewQuadric();
+            glRotatef(-27, 1, 0, 0);
+            gluCylinder(quad, cylinderWidth, cylinderWidth, 330, 50, 50); //bliza
+        glPopMatrix();
+        
+        glPushMatrix();
+            glTranslatef(100, -150, 0);
+            glColor3f(1, 1, 1);
+            quad = gluNewQuadric();
+            glRotatef(-27, 1, 0, 0);
+            gluCylinder(quad, cylinderWidth, cylinderWidth, 330, 50, 50); //dalja
+        glPopMatrix();
+        
     glPopMatrix();
 
     glPopMatrix();

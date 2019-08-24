@@ -5,7 +5,7 @@
 
 void Ball::drawBall() 
 {
-    glEnable(GL_LIGHTING);
+    /*glEnable(GL_LIGHTING);
         //sa neta uzeo boju zlata
     GLfloat ambijentMaterijala[] = {1.0, 1.0, 1.0, 1.0 };
     GLfloat difuznoMaterijala[] = {0.75164, 0.60648, 0.22648, 1.0 };
@@ -17,14 +17,14 @@ void Ball::drawBall()
     glMaterialfv(GL_FRONT, GL_DIFFUSE, difuznoMaterijala);
     glMaterialfv(GL_FRONT, GL_SPECULAR, spekularnoMaterijala);
     glMaterialf(GL_FRONT, GL_SHININESS, sajnes);
-    glMaterialfv(GL_FRONT, GL_EMISSION, emisionoMaterijala);
+    glMaterialfv(GL_FRONT, GL_EMISSION, emisionoMaterijala);*/
     
     glPushMatrix();
-        //glColor3f(1, 1, 1);
+        glColor3f(1, 1, 1);
         glTranslatef(_xPos, _yPos, _zPos);
         glutSolidSphere(50.0, 50, 50);
     glPopMatrix();
-    glDisable(GL_LIGHTING);
+    //glDisable(GL_LIGHTING);
 }
 
 void Ball::Update()
@@ -58,9 +58,9 @@ void Ball::Update()
         _yPos = -(200 - BallSize / 2);
     }
 
-    if (_yPos >= 400 - BallSize / 2) {
+    if (_yPos >= 500 - BallSize / 2) {
         _ySpeed *= -1;
-        _yPos = 400 - BallSize / 2;
+        _yPos = 500 - BallSize / 2;
     }
 
     _xSpeed -= 0.06;
@@ -72,7 +72,17 @@ void Ball::CheckHeadCollision(float x, float y)
     float distance = sqrt((_xPos - x)*(_xPos - x) + (_yPos - y)*(_yPos - y));
     if(distance <= BallSize*2)
     {
-        _xDirection *= -1;
+        if(_xSpeed == 0.0)
+        {
+            if(x < _xPos)
+                _xDirection = 1;
+            else
+                _xDirection = -1;
+        }
+        else
+        {
+            _xDirection *= -1;
+        }
         _xSpeed = 25.0;
         //_ySpeed *= -1;
         if(_ySpeed > 0)
@@ -95,7 +105,17 @@ void Ball::CheckBodyCollision(float x, float y)
     //racunam koliziju sa unutrasnjim upisanim krugom kvadrata
     if(distance <= (BallSize + PlayerBodySize/2))
     {
-        _xDirection *= -1;
+        if(_xSpeed == 0.0)
+        {
+            if(x < _xPos)
+                _xDirection = 1;
+            else
+                _xDirection = -1;
+        }
+        else
+        {
+            _xDirection *= -1;
+        }
         _xSpeed = 30.0;
         _ySpeed = 48.1;
         //_ySpeed *= -1;

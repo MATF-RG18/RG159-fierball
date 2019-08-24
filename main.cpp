@@ -2,10 +2,12 @@
 #include <stdio.h>
 #include <math.h>
 #include <GL/glut.h>
+#include <vector>
 #include "Player.h"
 #include "Playground.h"
 #include "Ball.h"
 #include "Game.h"
+#include "Fan.h"
 
 static int trying = 0;
 
@@ -13,6 +15,7 @@ static int trying = 0;
 static void WriteStartScreen(void);
 static void WriteEndScreen(char* winner);
 static void WritePoints(void);
+static void WriteInstructions(void);
 static void WriteGoalScored();
 static void ConvertIntToChar(int x, char *s);
 static void RevertString(char *s, int n);
@@ -41,6 +44,12 @@ static Playground playground = Playground();
 static Ball ball = Ball();
 static Game game = Game();
 
+//fanovi
+std::vector<Fan> playerOneFans;
+std::vector<Fan> playerTwoFans;
+
+static Player playerFan = Player(1);
+
 int main(int argc, char **argv)
 {
     glutInit(&argc, argv);
@@ -56,10 +65,25 @@ int main(int argc, char **argv)
 
     hours = 0;
     timer_active = 0;
+    
+    int i;
+    for(i=0; i<=6; i++)
+    {
+        Fan fan = Fan(1);
+        fan.setXPos(fan.getXPos() + i * 110 );
+        playerOneFans.push_back(fan);
+    }
+    
+    for(i=0; i<=6; i++)
+    {
+        Fan fan = Fan(2);
+        fan.setXPos(fan.getXPos() + i * 110 );
+        playerTwoFans.push_back(fan);
+    }
 
-    glClearColor(0, 0, 0, 0);
+    /* Obavlja se OpenGL inicijalizacija. */
+    //glClearColor(0, 0.72,0.96,0);
     glEnable(GL_DEPTH_TEST);
-    //glEnable(GL_LIGHTING);
 
     glutMainLoop();
 
@@ -94,24 +118,24 @@ static void on_keyboard(unsigned char key, int x, int y)
     case 'd':
     case 'D':
         if(playerOne.getXPos()<=595.0)
-            playerOne.setXPos(playerOne.getXPos() + 5.0);
+            playerOne.setXPos(playerOne.getXPos() + 15.0);
         break;
     case 'a':
     case 'A':
         if(playerOne.getXPos()>=-595.0)
-            playerOne.setXPos(playerOne.getXPos() - 5.0);
+            playerOne.setXPos(playerOne.getXPos() - 15.0);
         break;
 
     //player TWO movement
     case 'l':
     case 'L':
         if (playerTwo.getXPos() <= 595.0)
-            playerTwo.setXPos(playerTwo.getXPos() + 5.0);
+            playerTwo.setXPos(playerTwo.getXPos() + 15.0);
         break;
     case 'j':
     case 'J':
         if (playerOne.getXPos() >= -595.0)
-            playerTwo.setXPos(playerTwo.getXPos() - 5.0);
+            playerTwo.setXPos(playerTwo.getXPos() - 15.0);
         break;
     case 'w':
     case 'W':
@@ -163,6 +187,7 @@ static void on_timer(int value)
     {
         game.SetGameState(gameState::GAME_END);
         game.SetPlayerAScore(0);
+        game.SetPlayerBScore(0);
         timer_active = 0;
         winnerText = "PLAYER 1 WINS";
     };
@@ -170,6 +195,7 @@ static void on_timer(int value)
     if(game.GetPlayerBScore() == 3 && goal_timer == 0)
     {
         game.SetGameState(gameState::GAME_END);
+        game.SetPlayerAScore(0);
         game.SetPlayerBScore(0);
         timer_active = 0;
         winnerText = "PLAYER 2 WINS";
@@ -181,6 +207,17 @@ static void on_timer(int value)
         ball.Reset();
         playerOne.Reset();
         playerTwo.Reset();
+        
+        int i;
+        for(i=0; i<=6; i++)
+        {
+            playerOneFans[i].Reset();
+        }
+        
+        for(i=0; i<=6; i++)
+        {
+            playerTwoFans[i].Reset();
+        }
     }
     
     if(ball.getPlayerAGoal() == true && goal_timer == 101)
@@ -195,6 +232,28 @@ static void on_timer(int value)
         goal_timer = 100;
         game.IncreasePlayerBScore();
         ball.setPlayerBGoal(false);
+    }
+    
+    if(ball.getPlayerAGoal() == true && goal_timer < 100 && goal_timer > 0)
+    {
+        int i;
+        for(i=0; i<=6; i++)
+        {
+            if( playerOneFans[i].getFanJumpState() == playerJumpState::GROUND )
+                playerOneFans[i].setFanJumpState(playerJumpState::UP);
+            playerOneFans[i].FanJumpUpdate();
+        }
+    }
+    
+    if(ball.getPlayerBGoal() == true && goal_timer < 100 && goal_timer > 0)
+    {
+        int i;
+        for(i=0; i<=6; i++)
+        {
+            if( playerTwoFans[i].getFanJumpState() == playerJumpState::GROUND )
+                playerTwoFans[i].setFanJumpState(playerJumpState::UP);
+            playerTwoFans[i].FanJumpUpdate();
+        }
     }
 
     /* Forsira se ponovno iscrtavanje prozora. */
@@ -219,23 +278,49 @@ static void on_reshape(int width, int height)
 static void on_display(void)
 {
     /* Postavlja se boja svih piksela na zadatu boju pozadine. */
+    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(0, 0.72,0.96,0);
+    
+    /* Pozicija svetla. */
+    GLfloat light_position[] = {1, 1, 1, 0};
+
+    /* Ambijentalna boja svetla. */
+    GLfloat light_ambient[] = { 0.2, 0.2, 0.2, 1 };
+
+    /* Difuzna boja svetla. */
+    GLfloat light_diffuse[] = { 1, 1, 1, 1 };
+
+    /* Spekularna boja svetla. */
+    GLfloat light_specular[] = {  1, 1, 1, 1 };
+
+    /* Koeficijenti spekularne refleksije materijala. */
+    GLfloat specular_coeffs[] = { 1, 1, 1, 1 };
+
+    /* Koeficijent glatkosti materijala. */
+    GLfloat shininess = 20;
+    
+    /* Postavlja se boja svih piksela na zadatu boju pozadine. */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    GLfloat pozicijaSvetla[] = { 0, 1, -0.3, 0 };
-    GLfloat ambijentalnoSvetlo[] = { 0.5, 0.5, 0.5, 1.0 };
-    GLfloat difuznoSvetlo[] = { 0.9, 0.9, 0.9, 1 };
-    GLfloat spekularnoSvetlo[] = { 1, 1, 1, 1 };
-    
-    glEnable(GL_LIGHT0);
-    glLightfv(GL_LIGHT0, GL_POSITION, pozicijaSvetla);
-    glLightfv(GL_LIGHT0, GL_AMBIENT, ambijentalnoSvetlo);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, difuznoSvetlo);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, spekularnoSvetlo);
-
     /* Postavlja se vidna tacka. */
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     gluLookAt(0, 0, 1000, 0, 0, 0, 0, 1, 0);
+    
+    /* Ukljucuje se osvjetljenje i podesavaju parametri svetla. */
+      glEnable(GL_LIGHTING);
+      glEnable(GL_LIGHT0);
+    
+      glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+      glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+      glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+      glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
+
+      /* Podesavaju se parametri materijala. */
+      glEnable ( GL_COLOR_MATERIAL ) ;
+      glColorMaterial ( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE );
+      glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular_coeffs);
+      glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
 
     if(game.GetGameState() == gameState::GAME_PLAYING)
     {    
@@ -244,6 +329,18 @@ static void on_display(void)
         playerTwo.drawPlayer();
         ball.drawBall();
         WritePoints();
+        WriteInstructions();
+        
+        int i;
+        for(i=0; i<=6; i++)
+        {
+            playerOneFans[i].drawFan();
+        }
+        
+        for(i=0; i<=6; i++)
+        {
+            playerTwoFans[i].drawFan();
+        }
     };
     
     if(goal_timer > 0 && goal_timer <= 100)
@@ -254,12 +351,16 @@ static void on_display(void)
     
     if(game.GetGameState() == gameState::GAME_START)
     {
+        glClearColor(0, 0, 0, 0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         WriteStartScreen();
     };
     
     //trying TODO
     if(game.GetGameState() == gameState::GAME_END)
     {
+        glClearColor(0, 0, 0, 0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         WriteEndScreen(winnerText);
     };
     
@@ -270,7 +371,7 @@ static void on_display(void)
 
 static void WriteStartScreen(void)
 {
-    //glDisable(GL_LIGHTING);
+    glDisable(GL_LIGHTING);
     //glClearColor(0, 0, 0);
 	glColor3f(1, 1, 1);
     
@@ -285,12 +386,12 @@ static void WriteStartScreen(void)
     for(i = 0; p[i] != '\0'; i++)
         glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, p[i]);
     
-	//glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHTING);
 }
 
 static void WriteEndScreen(char* winner)
 {
-    //glDisable(GL_LIGHTING);
+    glDisable(GL_LIGHTING);
     //glClearColor(0, 0, 0);
 	glColor3f(1, 1, 1);    
     int i;
@@ -309,12 +410,12 @@ static void WriteEndScreen(char* winner)
     for(i = 0; p[i] != '\0'; i++)
         glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, p[i]);
     
-	//glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHTING);
 }
 
 static void WriteGoalScored()
 {
-    //glDisable(GL_LIGHTING);
+    glDisable(GL_LIGHTING);
     //glClearColor(0, 0, 0);
 	glColor3f(1, 1, 1);    
     int i;
@@ -324,12 +425,32 @@ static void WriteGoalScored()
     for(i = 0; s[i] != '\0'; i++)
         glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, s[i]);
     
-	//glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHTING);
+}
+
+static void WriteInstructions()
+{
+    glDisable(GL_LIGHTING);
+    //glClearColor(0, 0, 0);
+	glColor3f(1, 1, 1);    
+    int i;
+    
+    glRasterPos3f(-600, PlayerAPointsY, PlayerAPointsZ);
+    char s[] = "A-Left D-Right W-Jump ";
+    for(i = 0; s[i] != '\0'; i++)
+        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, s[i]);
+    
+    glRasterPos3f(200, PlayerAPointsY, PlayerAPointsZ);
+    char p[] = "J-Left L-Right I-Jump ";
+    for(i = 0; p[i] != '\0'; i++)
+        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, p[i]);
+    
+	glEnable(GL_LIGHTING);
 }
 
 static void WritePoints(void)
 {
-    //glDisable(GL_LIGHTING);
+    glDisable(GL_LIGHTING);
     //glClearColor(0, 0, 0);
 	glColor3f(1, 1, 1);
  
@@ -352,7 +473,7 @@ static void WritePoints(void)
     for(i = 0; playerB[i] != '\0'; i++)
         glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, playerB[i]);
     
-	//glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHTING);
 }
 
 static void ConvertIntToChar(int x, char *s)
