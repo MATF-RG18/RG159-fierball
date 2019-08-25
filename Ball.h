@@ -10,7 +10,7 @@ public:
         _xPos = 0.0;
         _yPos = 300.0;
         _zPos = 0.0;
-        _xSpeed = 0;//12;
+        _xSpeed = 0;
         _ySpeed = 12.1;
         _xDirection = 1;
         _PlayerAGoal = false;

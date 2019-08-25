@@ -9,16 +9,13 @@
 #include "Game.h"
 #include "Fan.h"
 
-static int trying = 0;
-
-/*Screen Writing*/
+/*Funkcije za ispis teksta na ekranu*/
 static void WriteStartScreen(void);
 static void WriteEndScreen(char* winner);
 static void WritePoints(void);
 static void WriteInstructions(void);
 static void WriteGoalScored();
 static void ConvertIntToChar(int x, char *s);
-static void RevertString(char *s, int n);
 
 /* Vreme proteklo od pocetka simulacije. */
 static float hours;
@@ -26,7 +23,7 @@ static float hours;
 /* Fleg koji odredjuje stanje tajmera. */
 static int timer_active;
 
-/*Postignut gol tajmer*/
+/*Tajmer za trajanje simulacije kod postignutog gola*/
 static int goal_timer = 101;
 
 /*Tekst koji ce pisati za pobednika*/
@@ -66,27 +63,23 @@ int main(int argc, char **argv)
     hours = 0;
     timer_active = 0;
     
+    //inicijalizacija fanova 
     int i, j;
     for(j=0; j<3; j++)
         for(i=0; i<=6; i++)
         {
             Fan fan = Fan(1, j);
-            fan.setXPos(fan.getXPos() + i * 110 );
+            fan.setXPos(fan.getXPos() + i * X_DistanceBeetwenFans );
             playerOneFans.push_back(fan);
         }
     for(j=0; j<3; j++)
         for(i=0; i<=6; i++)
         {
             Fan fan = Fan(2, j);
-            fan.setXPos(fan.getXPos() + i * 110 );
+            fan.setXPos(fan.getXPos() + i * X_DistanceBeetwenFans );
             playerTwoFans.push_back(fan);
         }
-    
-    //playerFan.setZPos(-600);
-    //playerFan.setYPos(180);
-
-    /* Obavlja se OpenGL inicijalizacija. */
-    //glClearColor(0, 0.72,0.96,0);
+        
     glEnable(GL_DEPTH_TEST);
 
     glutMainLoop();
@@ -107,7 +100,6 @@ static void on_keyboard(unsigned char key, int x, int y)
         /* Pokrece se simulacija. */
         if (!timer_active) {
             game.SetGameState(gameState::GAME_PLAYING);
-            //reset everything TODO
             glutTimerFunc(20, on_timer, 0);
             timer_active = 1;
         }
@@ -118,29 +110,30 @@ static void on_keyboard(unsigned char key, int x, int y)
         /* Zaustavlja se simulacija. */
         timer_active = 0;
         break;
-    //player ONE movement
+    //pomeranje prvog igraca
     case 'd':
     case 'D':
-        if(playerOne.getXPos()<=595.0)
-            playerOne.setXPos(playerOne.getXPos() + 15.0);
+        if(playerOne.getXPos()<=PlayerFieldBorder)
+            playerOne.setXPos(playerOne.getXPos() + PlayerOnKeyboardMovement);
         break;
     case 'a':
     case 'A':
-        if(playerOne.getXPos()>=-595.0)
-            playerOne.setXPos(playerOne.getXPos() - 15.0);
+        if(playerOne.getXPos()>=-PlayerFieldBorder)
+            playerOne.setXPos(playerOne.getXPos() - PlayerOnKeyboardMovement);
         break;
 
-    //player TWO movement
+    //pomeranje drugog igraca
     case 'l':
     case 'L':
-        if (playerTwo.getXPos() <= 595.0)
-            playerTwo.setXPos(playerTwo.getXPos() + 15.0);
+        if (playerTwo.getXPos() <= PlayerFieldBorder)
+            playerTwo.setXPos(playerTwo.getXPos() + PlayerOnKeyboardMovement);
         break;
     case 'j':
     case 'J':
-        if (playerOne.getXPos() >= -595.0)
-            playerTwo.setXPos(playerTwo.getXPos() - 15.0);
+        if (playerOne.getXPos() >= -PlayerFieldBorder)
+            playerTwo.setXPos(playerTwo.getXPos() - PlayerOnKeyboardMovement);
         break;
+    //skok prvog igraca
     case 'w':
     case 'W':
         if(playerOne.getPlayerJumpState() == playerJumpState::GROUND)
@@ -148,6 +141,7 @@ static void on_keyboard(unsigned char key, int x, int y)
             playerOne.setPlayerJumpState(playerJumpState::UP);
         }
         break;
+    //skok drugog igraca
     case 'i':
     case 'I':
         if(playerTwo.getPlayerJumpState() == playerJumpState::GROUND)
@@ -171,40 +165,46 @@ static void on_timer(int value)
     /* Azurira se vreme simulacije. */
     hours += 18;
     
+    //azuriranje pozicija objekata ako je igra u toku
     if(game.GetGameState() == gameState::GAME_PLAYING)
     {
         ball.CheckHeadCollision(playerOne.getXPos(), playerOne.getYPos());
         ball.CheckHeadCollision(playerTwo.getXPos(), playerTwo.getYPos());
         ball.CheckBodyCollision(playerOne.getXPos(), playerOne.getYPos());
         ball.CheckBodyCollision(playerTwo.getXPos(), playerTwo.getYPos());
+        //usporavanje lopte ako je postignut gol
         if(goal_timer < 101 && goal_timer > 0)
         {
             ball.setXSpeed(6.0);
             ball.setYSpeed(-12.1);
         }
         ball.Update();
+        //skok igraca
         playerOne.PlayerJumpUpdate();
         playerTwo.PlayerJumpUpdate();
     };
     
+    //igrac A (1) je pobedio
     if(game.GetPlayerAScore() == 3 && goal_timer == 0)
     {
         game.SetGameState(gameState::GAME_END);
         game.SetPlayerAScore(0);
         game.SetPlayerBScore(0);
         timer_active = 0;
-        winnerText = "PLAYER 1 WINS";
+        winnerText = (char *)"PLAYER 1 WINS";
     };
     
+    //igrac B (2) je pobedio
     if(game.GetPlayerBScore() == 3 && goal_timer == 0)
     {
         game.SetGameState(gameState::GAME_END);
         game.SetPlayerAScore(0);
         game.SetPlayerBScore(0);
         timer_active = 0;
-        winnerText = "PLAYER 2 WINS";
+        winnerText = (char *)"PLAYER 2 WINS";
     };
     
+    //resetovanje na pocetne pozicije ako je gol postignut
     if(goal_timer == 0)
     {
         goal_timer = 101;
@@ -226,20 +226,21 @@ static void on_timer(int value)
         ball.setPlayerBGoal(false);
     }
     
+    //pokretanje slavlja ako je igrac A(1) postigao gol
     if(ball.getPlayerAGoal() == true && goal_timer == 101)
     {
         goal_timer = 100;
         game.IncreasePlayerAScore();
-        //ball.setPlayerAGoal(false);
     }
     
+    //pokretanje slavlja ako je igrac B(2) postigao gol
     if(ball.getPlayerBGoal() == true && goal_timer == 101)
     {
         goal_timer = 100;
         game.IncreasePlayerBScore();
-        //ball.setPlayerBGoal(false);
     }
     
+    //radovanje navijaca
     if(ball.getPlayerAGoal() == true && goal_timer < 100 && goal_timer > 0)
     {
         int i;
@@ -251,6 +252,7 @@ static void on_timer(int value)
         }
     }
     
+    //radovanje navijaca
     if(ball.getPlayerBGoal() == true && goal_timer < 100 && goal_timer > 0)
     {
         int i;
@@ -278,13 +280,12 @@ static void on_reshape(int width, int height)
     /* Postavljaju se parametri projekcije. */
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(60, (float)width / height, 1, 2000/*1500*/);
+    gluPerspective(60, (float)width / height, 1, 2000);
 }
 
 static void on_display(void)
 {
-    /* Postavlja se boja svih piksela na zadatu boju pozadine. */
-    //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    /*boja pozadine*/
     glClearColor(0, 0.72,0.96,0);
     
     /* Pozicija svetla. */
@@ -314,20 +315,21 @@ static void on_display(void)
     gluLookAt(0, 0, 1000, 0, 0, 0, 0, 1, 0);
     
     /* Ukljucuje se osvjetljenje i podesavaju parametri svetla. */
-      glEnable(GL_LIGHTING);
-      glEnable(GL_LIGHT0);
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
     
-      glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-      glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
-      glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
-      glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
+    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
 
-      /* Podesavaju se parametri materijala. */
-      glEnable ( GL_COLOR_MATERIAL ) ;
-      glColorMaterial ( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE );
-      glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular_coeffs);
-      glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
+    /* Podesavaju se parametri materijala. */
+    glEnable ( GL_COLOR_MATERIAL ) ;
+    glColorMaterial ( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE );
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular_coeffs);
+    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
 
+    //iscrtavanje u slucaju da traje igra
     if(game.GetGameState() == gameState::GAME_PLAYING)
     {    
         playground.drawField();
@@ -347,16 +349,16 @@ static void on_display(void)
         {
             playerTwoFans[i].drawFan();
         }
-        
-        //playerFan.drawPlayer();
     };
     
+    //iscrtavanje i azuriranje za vreme proslave gola
     if(goal_timer > 0 && goal_timer <= 100)
     {
         WriteGoalScored();
         goal_timer--;
     }
     
+    //pocetni ekran
     if(game.GetGameState() == gameState::GAME_START)
     {
         glClearColor(0, 0, 0, 0);
@@ -364,7 +366,7 @@ static void on_display(void)
         WriteStartScreen();
     };
     
-    //trying TODO
+    //zavrsni ekran
     if(game.GetGameState() == gameState::GAME_END)
     {
         glClearColor(0, 0, 0, 0);
@@ -380,7 +382,6 @@ static void on_display(void)
 static void WriteStartScreen(void)
 {
     glDisable(GL_LIGHTING);
-    //glClearColor(0, 0, 0);
 	glColor3f(1, 1, 1);
     
     int i;
@@ -400,7 +401,6 @@ static void WriteStartScreen(void)
 static void WriteEndScreen(char* winner)
 {
     glDisable(GL_LIGHTING);
-    //glClearColor(0, 0, 0);
 	glColor3f(1, 1, 1);    
     int i;
     
@@ -424,7 +424,6 @@ static void WriteEndScreen(char* winner)
 static void WriteGoalScored()
 {
     glDisable(GL_LIGHTING);
-    //glClearColor(0, 0, 0);
 	glColor3f(1, 1, 1);    
     int i;
     
@@ -439,7 +438,6 @@ static void WriteGoalScored()
 static void WriteInstructions()
 {
     glDisable(GL_LIGHTING);
-    //glClearColor(0, 0, 0);
 	glColor3f(1, 1, 1);    
     int i;
     
@@ -459,7 +457,6 @@ static void WriteInstructions()
 static void WritePoints(void)
 {
     glDisable(GL_LIGHTING);
-    //glClearColor(0, 0, 0);
 	glColor3f(1, 1, 1);
  
     char playerA[5];
@@ -499,19 +496,6 @@ static void ConvertIntToChar(int x, char *s)
         x /= 10;
     }
     s[i] = '\0';
-    //RevertString(s, i);
     return;
     
-}
-
-static void RevertString(char *s, int n)
-{
-    int i, j;
-    char help;
-    for(i=0, j=n-1; i<j; i++, j--)
-    {
-        help = s[i];
-        s[i] = s[j];
-        s[j] = help;
-    }
 }

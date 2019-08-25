@@ -5,26 +5,11 @@
 
 void Ball::drawBall() 
 {
-    /*glEnable(GL_LIGHTING);
-        //sa neta uzeo boju zlata
-    GLfloat ambijentMaterijala[] = {1.0, 1.0, 1.0, 1.0 };
-    GLfloat difuznoMaterijala[] = {0.75164, 0.60648, 0.22648, 1.0 };
-    GLfloat spekularnoMaterijala[] = {0.628281, 0.555802, 0.366065, 1.0 };
-    GLfloat emisionoMaterijala[] = {0, 0, 0, 0};
-    GLfloat sajnes = 51.2;
-    
-    glMaterialfv(GL_FRONT, GL_AMBIENT, ambijentMaterijala);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, difuznoMaterijala);
-    glMaterialfv(GL_FRONT, GL_SPECULAR, spekularnoMaterijala);
-    glMaterialf(GL_FRONT, GL_SHININESS, sajnes);
-    glMaterialfv(GL_FRONT, GL_EMISSION, emisionoMaterijala);*/
-    
     glPushMatrix();
         glColor3f(1, 1, 1);
         glTranslatef(_xPos, _yPos, _zPos);
-        glutSolidSphere(50.0, 50, 50);
+        glutSolidSphere(BallSize, 50, 50);
     glPopMatrix();
-    //glDisable(GL_LIGHTING);
 }
 
 void Ball::Update()
@@ -34,6 +19,7 @@ void Ball::Update()
     {
         _xPos += _xSpeed*_xDirection;
         if (_xPos <= -(600 + BallSize / 2)) {
+            //provera da li je igrac B dao gol
             if(_yPos > -200 && _yPos < 100)
             {
                 _PlayerBGoal = true;
@@ -43,6 +29,7 @@ void Ball::Update()
         }
         if (_xPos >= 600 + BallSize / 2) 
         {
+            //provera da li je igrac A dao gol
             if(_yPos > -200 && _yPos < 100)
             {
                 _PlayerAGoal = true;
@@ -63,12 +50,15 @@ void Ball::Update()
         _yPos = 500 - BallSize / 2;
     }
 
+    //podesavano po osecaju
     _xSpeed -= 0.06;
     _ySpeed -= 5.0;
 }
 
 void Ball::CheckHeadCollision(float x, float y)
 {
+    //provera da li je u koliziji sa igracevom glavom cije su koordinate prosledjene
+    //desavanje nakon kolizije podeseno po osecaju
     float distance = sqrt((_xPos - x)*(_xPos - x) + (_yPos - y)*(_yPos - y));
     if(distance <= BallSize*2)
     {
@@ -84,7 +74,7 @@ void Ball::CheckHeadCollision(float x, float y)
             _xDirection *= -1;
         }
         _xSpeed = 25.0;
-        //_ySpeed *= -1;
+        
         if(_ySpeed > 0)
         {
             _ySpeed = -48.1;
@@ -98,6 +88,9 @@ void Ball::CheckHeadCollision(float x, float y)
 
 void Ball::CheckBodyCollision(float x, float y)
 {
+    //provera da li je u koliziji sa igracevim telom cije su koordinate prosledjene
+    //desavanje nakon kolizije podeseno po osecaju
+    
     //telo je za 100 ispod glave po y osi
     y-=100;
     
@@ -118,14 +111,5 @@ void Ball::CheckBodyCollision(float x, float y)
         }
         _xSpeed = 30.0;
         _ySpeed = 48.1;
-        //_ySpeed *= -1;
-        /*if(_ySpeed > 0)
-        {
-            _ySpeed = -12.1;
-        };
-        if(_ySpeed < 0)
-        {
-            _ySpeed = 12.1;
-        };*/
     }    
 }

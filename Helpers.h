@@ -12,6 +12,9 @@ enum gameState
     GAME_END = 2
 };
 
+//fanovi
+const static float X_DistanceBeetwenFans = 110.0;
+
 //ispis na ekranu
 const static float StartScreenXPosition = -250.0;
 const static float StartScreenYPositionLine_1 = 200.0;
@@ -36,6 +39,8 @@ const static float PlayerInitialXPosition = 500.0;
 const static float PlayerInitialYPosition = -60.0;
 const static float PlayerHeadSize = 50.0;
 const static float PlayerMaxJumpYHeight = 100.0;
+const static float PlayerOnKeyboardMovement = 15.0;
+const static float PlayerFieldBorder = 595.0;
 enum playerJumpState
 {
     UP = 0,

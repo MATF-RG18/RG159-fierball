@@ -54,27 +54,12 @@ public:
             }
             _fanJumpState = playerJumpState::GROUND;
         }
-        /*switch (_playerNumber)
-        {
-            case 1:
-                _xPos = -750.0;
-                break;
-            case 2:
-                _xPos = 50.0;
-                break;
-        }
-            _yPos = 70;//100.0;
-            _zPos = -520;//-500.0;
-            _fanJumpState = playerJumpState::GROUND;
-        }*/
         
     void Reset();
 
     void drawFan();
 
-    //head
     void drawHead();
-
     void drawBody();
     
     void FanJumpUpdate();

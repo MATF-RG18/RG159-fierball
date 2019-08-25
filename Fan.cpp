@@ -21,30 +21,29 @@ void Fan::drawBody()
     glPopMatrix();
 }
 
-//head drawing functions
 void Fan::drawHead() 
 {
     glPushMatrix();
         glColor3f(255, 255, 0);
-        glColor3f(dvapet, dvapet, 0);
-        glutSolidSphere(50.0, 50, 50);
-
+        glColor3f(255, 255, 0);
+        glutSolidSphere(PlayerHeadSize, 50, 50);
     glPopMatrix();
 }
 
 void Fan::FanJumpUpdate()
 {
+    //skakanje fanova pri radovanju je identicno uradjeno kao skok igraca, samo sa drugim parametrima
     if(_fanJumpState == playerJumpState::GROUND)
         return;
     
     if(_fanJumpState == playerJumpState::UP)
     {
-        _yPos+=7;//10;
+        _yPos+=7;
     }
     
     if(_fanJumpState == playerJumpState::DOWN)
     {
-        _yPos-=10;//15;
+        _yPos-=10;
     }
     
     if(_yPos >= (160.0 + _fanRow*110))
