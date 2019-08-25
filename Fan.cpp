@@ -39,22 +39,39 @@ void Fan::FanJumpUpdate()
     
     if(_fanJumpState == playerJumpState::UP)
     {
-        _yPos+=10;
+        _yPos+=7;//10;
     }
     
     if(_fanJumpState == playerJumpState::DOWN)
     {
-        _yPos-=15;
+        _yPos-=10;//15;
     }
     
-    if(_yPos >= 240.0)
+    if(_yPos >= (160.0 + _fanRow*110))
     {
         _fanJumpState = playerJumpState::DOWN;
     }
     
-    if(_yPos < 100.0)
+    if(_yPos < (70.0 + _fanRow*110))
     {
         _fanJumpState = playerJumpState::GROUND;
-        _yPos = 100.0;
+        _yPos = 70.0 + _fanRow*110;
     }
+}
+
+void Fan::Reset()
+{
+    switch (_fanRow)
+    {
+        case 0:
+            _yPos = 70;
+            break;
+        case 1:
+            _yPos = 180;
+            break;
+        case 2:
+            _yPos = 290;
+            break;
+    }
+    _fanJumpState = playerJumpState::GROUND;
 }

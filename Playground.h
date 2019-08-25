@@ -10,7 +10,6 @@ public:
     void drawField();
     void drawGrass();
     void drawLines();
-    void drawFans();
     void drawGoals();
 };
 

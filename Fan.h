@@ -6,10 +6,55 @@
 class Fan
 {
 public:
-    Fan(int number) :
-        _playerNumber(number)
+    Fan(int number, int row) :
+        _playerNumber(number), _fanRow(row) 
         {
-        switch (_playerNumber)
+            if(_playerNumber == 1)
+            {
+                switch (_fanRow)
+                {
+                    case 0:
+                        _xPos = -750;
+                        _yPos = 70;
+                        _zPos = -520;
+                        break;
+                    case 1:
+                        _xPos = -800;
+                        _yPos = 180;
+                        _zPos = -600;
+                        break;
+                    case 2:
+                        _xPos = -750;
+                        _yPos = 290;
+                        _zPos = -680;
+                        break;
+                }
+            }
+            
+            if(_playerNumber == 2)
+            {
+                switch (_fanRow)
+                {
+                    case 0:
+                        _xPos = 50;
+                        _yPos = 70;
+                        _zPos = -520;
+                        break;
+                    case 1:
+                        _xPos = 0;
+                        _yPos = 180;
+                        _zPos = -600;
+                        break;
+                    case 2:
+                        _xPos = 50;
+                        _yPos = 290;
+                        _zPos = -680;
+                        break;
+                }
+            }
+            _fanJumpState = playerJumpState::GROUND;
+        }
+        /*switch (_playerNumber)
         {
             case 1:
                 _xPos = -750.0;
@@ -21,13 +66,9 @@ public:
             _yPos = 70;//100.0;
             _zPos = -520;//-500.0;
             _fanJumpState = playerJumpState::GROUND;
-        }
+        }*/
         
-    void Reset()
-    {
-        _yPos = 70;//100.0;
-        _fanJumpState = playerJumpState::GROUND;
-    }
+    void Reset();
 
     void drawFan();
 
@@ -55,4 +96,5 @@ private:
     float _zPos;
     int _playerNumber;
     playerJumpState _fanJumpState;
+    int _fanRow;
 };

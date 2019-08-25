@@ -66,20 +66,24 @@ int main(int argc, char **argv)
     hours = 0;
     timer_active = 0;
     
-    int i;
-    for(i=0; i<=6; i++)
-    {
-        Fan fan = Fan(1);
-        fan.setXPos(fan.getXPos() + i * 110 );
-        playerOneFans.push_back(fan);
-    }
+    int i, j;
+    for(j=0; j<3; j++)
+        for(i=0; i<=6; i++)
+        {
+            Fan fan = Fan(1, j);
+            fan.setXPos(fan.getXPos() + i * 110 );
+            playerOneFans.push_back(fan);
+        }
+    for(j=0; j<3; j++)
+        for(i=0; i<=6; i++)
+        {
+            Fan fan = Fan(2, j);
+            fan.setXPos(fan.getXPos() + i * 110 );
+            playerTwoFans.push_back(fan);
+        }
     
-    for(i=0; i<=6; i++)
-    {
-        Fan fan = Fan(2);
-        fan.setXPos(fan.getXPos() + i * 110 );
-        playerTwoFans.push_back(fan);
-    }
+    //playerFan.setZPos(-600);
+    //playerFan.setYPos(180);
 
     /* Obavlja se OpenGL inicijalizacija. */
     //glClearColor(0, 0.72,0.96,0);
@@ -209,35 +213,37 @@ static void on_timer(int value)
         playerTwo.Reset();
         
         int i;
-        for(i=0; i<=6; i++)
+        for(i=0; i<21; i++)
         {
             playerOneFans[i].Reset();
         }
         
-        for(i=0; i<=6; i++)
+        for(i=0; i<21; i++)
         {
             playerTwoFans[i].Reset();
         }
+        ball.setPlayerAGoal(false);
+        ball.setPlayerBGoal(false);
     }
     
     if(ball.getPlayerAGoal() == true && goal_timer == 101)
     {
         goal_timer = 100;
         game.IncreasePlayerAScore();
-        ball.setPlayerAGoal(false);
+        //ball.setPlayerAGoal(false);
     }
     
     if(ball.getPlayerBGoal() == true && goal_timer == 101)
     {
         goal_timer = 100;
         game.IncreasePlayerBScore();
-        ball.setPlayerBGoal(false);
+        //ball.setPlayerBGoal(false);
     }
     
     if(ball.getPlayerAGoal() == true && goal_timer < 100 && goal_timer > 0)
     {
         int i;
-        for(i=0; i<=6; i++)
+        for(i=0; i<21; i++)
         {
             if( playerOneFans[i].getFanJumpState() == playerJumpState::GROUND )
                 playerOneFans[i].setFanJumpState(playerJumpState::UP);
@@ -248,7 +254,7 @@ static void on_timer(int value)
     if(ball.getPlayerBGoal() == true && goal_timer < 100 && goal_timer > 0)
     {
         int i;
-        for(i=0; i<=6; i++)
+        for(i=0; i<21; i++)
         {
             if( playerTwoFans[i].getFanJumpState() == playerJumpState::GROUND )
                 playerTwoFans[i].setFanJumpState(playerJumpState::UP);
@@ -272,7 +278,7 @@ static void on_reshape(int width, int height)
     /* Postavljaju se parametri projekcije. */
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(60, (float)width / height, 1, 1500);
+    gluPerspective(60, (float)width / height, 1, 2000/*1500*/);
 }
 
 static void on_display(void)
@@ -332,15 +338,17 @@ static void on_display(void)
         WriteInstructions();
         
         int i;
-        for(i=0; i<=6; i++)
+        for(i=0; i<21; i++)
         {
             playerOneFans[i].drawFan();
         }
         
-        for(i=0; i<=6; i++)
+        for(i=0; i<21; i++)
         {
             playerTwoFans[i].drawFan();
         }
+        
+        //playerFan.drawPlayer();
     };
     
     if(goal_timer > 0 && goal_timer <= 100)
@@ -420,7 +428,7 @@ static void WriteGoalScored()
 	glColor3f(1, 1, 1);    
     int i;
     
-    glRasterPos3f(StartScreenXPosition, StartScreenYPositionLine_1, StartScreenZPosition);
+    glRasterPos3f(StartScreenXPosition, StartScreenYPositionLine_1 + 50, StartScreenZPosition);
     char s[] = "GOOOOOOOOAAAAAAAAALLL";
     for(i = 0; s[i] != '\0'; i++)
         glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, s[i]);
