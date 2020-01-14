@@ -30,6 +30,17 @@ const static float PlayerBPointsX = 30.0;
 const static float PlayerBPointsY = 400.0;
 const static float PlayerBPointsZ = 0.0;
 
+const static float TimerX = -15.0;
+const static float TimerY = 470.0;
+const static float TimerZ = 0.0;
+
+const static float GoldenGoalX = -120.0;
+const static float GoldenGoalY = 470.0;
+const static float GoldenGoalZ = 0.0;
+
+const static int SecsDefault = 20;
+const static int MsecsDefault = 20000;
+
 //lopta
 const static float BallSize = 50.0;
 

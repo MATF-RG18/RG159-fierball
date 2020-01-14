@@ -15,10 +15,13 @@ static void WriteEndScreen(char* winner);
 static void WritePoints(void);
 static void WriteInstructions(void);
 static void WriteGoalScored();
+static void WriteTimer(void);
+static void WriteGoldenGoal(void);
 static void ConvertIntToChar(int x, char *s);
 
 /* Vreme proteklo od pocetka simulacije. */
-static float hours;
+static int msecs;
+static int secs;
 
 /* Fleg koji odredjuje stanje tajmera. */
 static int timer_active;
@@ -60,7 +63,8 @@ int main(int argc, char **argv)
     glutReshapeFunc(on_reshape);
     glutDisplayFunc(on_display);
 
-    hours = 0;
+    msecs = MsecsDefault;
+    secs = SecsDefault;
     timer_active = 0;
     
     //inicijalizacija fanova 
@@ -161,9 +165,6 @@ static void on_timer(int value)
     /* Proverava se da li callback dolazi od odgovarajuceg tajmera. */
     if (value != 0)
         return;
-
-    /* Azurira se vreme simulacije. */
-    hours += 18;
     
     //azuriranje pozicija objekata ako je igra u toku
     if(game.GetGameState() == gameState::GAME_PLAYING)
@@ -178,29 +179,58 @@ static void on_timer(int value)
             ball.setXSpeed(6.0);
             ball.setYSpeed(-12.1);
         }
+        else
+        {
+            /* Ako je u toku igra azuriramo tajmer. */
+            msecs -= 20;
+            if(msecs % 1000 == 0)
+            {
+                secs--;
+            }
+        }
         ball.Update();
         //skok igraca
         playerOne.PlayerJumpUpdate();
         playerTwo.PlayerJumpUpdate();
     };
     
+    //pokretanje slavlja ako je igrac A(1) postigao gol
+    if(ball.getPlayerAGoal() == true && goal_timer == 101)
+    {
+        goal_timer = 100;
+        game.IncreasePlayerAScore();
+    }
+    
+    //pokretanje slavlja ako je igrac B(2) postigao gol
+    if(ball.getPlayerBGoal() == true && goal_timer == 101)
+    {
+        goal_timer = 100;
+        game.IncreasePlayerBScore();
+    }
+    
     //igrac A (1) je pobedio
-    if(game.GetPlayerAScore() == 3 && goal_timer == 0)
+    if((game.GetPlayerAScore() == 3  && goal_timer == 0) 
+        || (secs <= 0 && game.GetPlayerAScore() > game.GetPlayerBScore() && (goal_timer == 0 || goal_timer == 101)))
     {
         game.SetGameState(gameState::GAME_END);
         game.SetPlayerAScore(0);
         game.SetPlayerBScore(0);
         timer_active = 0;
+        msecs = 10000;
+        secs = 10;
         winnerText = (char *)"PLAYER 1 WINS";
     };
     
     //igrac B (2) je pobedio
-    if(game.GetPlayerBScore() == 3 && goal_timer == 0)
+    if((game.GetPlayerBScore() == 3  && goal_timer == 0) 
+        || (secs <= 0 && game.GetPlayerAScore() < game.GetPlayerBScore()  && (goal_timer == 0 || goal_timer == 101)))
     {
         game.SetGameState(gameState::GAME_END);
         game.SetPlayerAScore(0);
         game.SetPlayerBScore(0);
         timer_active = 0;
+        msecs = MsecsDefault;
+        secs = SecsDefault;
         winnerText = (char *)"PLAYER 2 WINS";
     };
     
@@ -224,20 +254,6 @@ static void on_timer(int value)
         }
         ball.setPlayerAGoal(false);
         ball.setPlayerBGoal(false);
-    }
-    
-    //pokretanje slavlja ako je igrac A(1) postigao gol
-    if(ball.getPlayerAGoal() == true && goal_timer == 101)
-    {
-        goal_timer = 100;
-        game.IncreasePlayerAScore();
-    }
-    
-    //pokretanje slavlja ako je igrac B(2) postigao gol
-    if(ball.getPlayerBGoal() == true && goal_timer == 101)
-    {
-        goal_timer = 100;
-        game.IncreasePlayerBScore();
     }
     
     //radovanje navijaca
@@ -338,6 +354,14 @@ static void on_display(void)
         ball.drawBall();
         WritePoints();
         WriteInstructions();
+        if(secs > 0)
+        {    
+            WriteTimer();
+        }
+        else
+        {
+            WriteGoldenGoal();
+        }
         
         int i;
         for(i=0; i<21; i++)
@@ -435,10 +459,39 @@ static void WriteGoalScored()
 	glEnable(GL_LIGHTING);
 }
 
+static void WriteTimer()
+{
+    glDisable(GL_LIGHTING);
+    glColor3f(1, 0, 0);    
+    int i;
+    
+    glRasterPos3f(TimerX, TimerY, TimerZ);
+    char timer[5];
+    ConvertIntToChar(secs, timer);
+    for(i = 0; timer[i] != '\0'; i++)
+        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, timer[i]);
+    
+	glEnable(GL_LIGHTING);
+}
+
+static void WriteGoldenGoal()
+{
+    glDisable(GL_LIGHTING);
+	glColor3f(255, 223, 0);    
+    int i;
+    
+    glRasterPos3f(GoldenGoalX, GoldenGoalY, GoldenGoalZ);
+    char s[] = "GOLDEN GOAL";
+    for(i = 0; s[i] != '\0'; i++)
+        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, s[i]);
+    
+	glEnable(GL_LIGHTING);
+}
+
 static void WriteInstructions()
 {
     glDisable(GL_LIGHTING);
-	glColor3f(1, 1, 1);    
+	glColor3f(0, 0, 0);    
     int i;
     
     glRasterPos3f(-600, PlayerAPointsY, PlayerAPointsZ);
@@ -483,19 +536,17 @@ static void WritePoints(void)
 
 static void ConvertIntToChar(int x, char *s)
 {
-    if(x == 0)
+    if(x < 10)
     {
-        s[0] = '0', s[1] = '\0';
+        s[0] = '0' + x; 
+        s[1] = '\0';
         return;
     }
-    
-    int i;
-    for(i = 0; x != 0; i++)
+    else
     {
-        s[i] = x%10 + '0';
-        x /= 10;
+        s[0] = '0' + x/10;
+        s[1] = '0' + x%10;
+        s[2] = '\0';
+        return;
     }
-    s[i] = '\0';
-    return;
-    
 }
