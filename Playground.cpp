@@ -1,30 +1,36 @@
 #include "Playground.h"
 #include "Helpers.h"
 
-void Playground::drawField()
+void Playground::drawField(GLuint names[])
 {
     glPushMatrix();
         glTranslatef(0, -200.0, 0);
         glRotatef(-70, 1, 0, 0);
-        drawGrass();
+        drawGrass(names);
         drawLines();
         drawGoals();
     glPopMatrix();
 }
 
-void Playground::drawGrass() 
+void Playground::drawGrass(GLuint names[]) 
 {
+    glBindTexture(GL_TEXTURE_2D, names[1]);
     //Iscrtavanje zelene povrsine
-    const float xCor = 1400.0, yCor = 350.0, zCor = 0;
+    const float xCor = 1400.0, yCorFar = 350.0, yCorNear = 450.0, zCor = 0;
     glPushMatrix();
         glColor3f(0, 1, 0);
-        glBegin(GL_POLYGON);
-            glVertex3f(-xCor, -yCor, zCor);
-            glVertex3f(xCor, -yCor, zCor);
-            glVertex3f(xCor, yCor, zCor);
-            glVertex3f(-xCor, yCor, zCor);
+        glBegin(GL_QUADS);
+            glTexCoord2f(0, 0);
+            glVertex3f(-xCor, -yCorNear, zCor);
+            glTexCoord2f(10, 0);
+            glVertex3f(xCor, -yCorNear, zCor);
+            glTexCoord2f(10, 10);
+            glVertex3f(xCor, yCorFar, zCor);
+            glTexCoord2f(0, 10);
+            glVertex3f(-xCor, yCorFar, zCor);
         glEnd();
     glPopMatrix();
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void Playground::drawLines() 

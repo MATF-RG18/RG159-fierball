@@ -8,6 +8,7 @@
 #include "Ball.h"
 #include "Game.h"
 #include "Fan.h"
+#include "image.h"
 
 /*Funkcije za ispis teksta na ekranu*/
 static void WriteStartScreen(void);
@@ -18,6 +19,14 @@ static void WriteGoalScored();
 static void WriteTimer(void);
 static void WriteGoldenGoal(void);
 static void ConvertIntToChar(int x, char *s);
+static void initialize(void);
+
+/* Imena fajlova sa teksturama. */
+#define FILENAME0 "PoolWater.bmp"
+#define FILENAME1 "grass.bmp"
+
+/* Identifikatori tekstura. */
+static GLuint names[2];
 
 /* Vreme proteklo od pocetka simulacije. */
 static int msecs;
@@ -32,8 +41,16 @@ static int goal_timer = 101;
 /*Tekst koji ce pisati za pobednika*/
 char* winnerText;
 
+/*Kretanje igraca*/
+static int playerOneLeft = 0;
+static int playerOneRight = 0;
+static int playerTwoLeft = 0;
+static int playerTwoRight = 0;
+
 /* Deklaracije callback funkcija. */
 static void on_keyboard(unsigned char key, int x, int y);
+static void on_special_keyboard(int key, int x, int y);
+static void on_released_keyboard(int key, int x, int y);
 static void on_reshape(int width, int height);
 static void on_timer(int value);
 static void on_display(void);
@@ -60,6 +77,8 @@ int main(int argc, char **argv)
     glutCreateWindow(argv[0]);
 
     glutKeyboardFunc(on_keyboard);
+    glutSpecialFunc(on_special_keyboard);
+    glutSpecialUpFunc(on_released_keyboard);
     glutReshapeFunc(on_reshape);
     glutDisplayFunc(on_display);
 
@@ -83,6 +102,8 @@ int main(int argc, char **argv)
             fan.setXPos(fan.getXPos() + i * X_DistanceBeetwenFans );
             playerTwoFans.push_back(fan);
         }
+        
+    initialize();
         
     glEnable(GL_DEPTH_TEST);
 
@@ -114,51 +135,73 @@ static void on_keyboard(unsigned char key, int x, int y)
         /* Zaustavlja se simulacija. */
         timer_active = 0;
         break;
-    //pomeranje prvog igraca
-    case 'd':
-    case 'D':
-        if(playerOne.getXPos()<=PlayerFieldBorder)
-            playerOne.setXPos(playerOne.getXPos() + PlayerOnKeyboardMovement);
-        break;
-    case 'a':
-    case 'A':
-        if(playerOne.getXPos()>=-PlayerFieldBorder)
-            playerOne.setXPos(playerOne.getXPos() - PlayerOnKeyboardMovement);
-        break;
-
-    //pomeranje drugog igraca
-    case 'l':
-    case 'L':
-        if (playerTwo.getXPos() <= PlayerFieldBorder)
-            playerTwo.setXPos(playerTwo.getXPos() + PlayerOnKeyboardMovement);
-        break;
-    case 'j':
-    case 'J':
-        if (playerOne.getXPos() >= -PlayerFieldBorder)
-            playerTwo.setXPos(playerTwo.getXPos() - PlayerOnKeyboardMovement);
-        break;
-    //skok prvog igraca
-    case 'w':
-    case 'W':
-        if(playerOne.getPlayerJumpState() == playerJumpState::GROUND)
-        {
-            playerOne.setPlayerJumpState(playerJumpState::UP);
-        }
-        break;
-    //skok drugog igraca
-    case 'i':
-    case 'I':
-        if(playerTwo.getPlayerJumpState() == playerJumpState::GROUND)
-        {
-            playerTwo.setPlayerJumpState(playerJumpState::UP);
-        }
-        break;
     default:
         break;
     }
 }
 
+static void on_special_keyboard(int key, int x, int y)
+{
+    if(timer_active && game.GetGameState() == gameState::GAME_PLAYING)
+    {
+        switch(key)
+        {
+            //pomeranje prvog igraca
+            case GLUT_KEY_F3:
+                playerOneRight = 1;
+                break;
+            case GLUT_KEY_F1:
+                playerOneLeft = 1;
+                break;
 
+            //pomeranje drugog igraca
+            case GLUT_KEY_RIGHT:
+                playerTwoRight = 1;
+                break;
+            case GLUT_KEY_LEFT:
+                playerTwoLeft = 1;
+                break;
+            //skok prvog igraca
+            case GLUT_KEY_F2:   
+                if(playerOne.getPlayerJumpState() == playerJumpState::GROUND)
+                {
+                    playerOne.setPlayerJumpState(playerJumpState::UP);
+                }
+                break;
+            //skok drugog igraca
+            case GLUT_KEY_UP:
+                if(playerTwo.getPlayerJumpState() == playerJumpState::GROUND)
+                {
+                    playerTwo.setPlayerJumpState(playerJumpState::UP);
+                }
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+static void on_released_keyboard(int key, int x, int y)
+{
+    switch(key)
+    {
+        //pomeranje prvog igraca
+        case GLUT_KEY_F3:
+            playerOneRight = 0;
+            break;
+        case GLUT_KEY_F1:
+            playerOneLeft = 0;
+            break;
+
+        //pomeranje drugog igraca
+        case GLUT_KEY_RIGHT:
+            playerTwoRight = 0;
+            break;
+        case GLUT_KEY_LEFT:
+            playerTwoLeft = 0;
+            break;
+    }
+}
 
 static void on_timer(int value)
 {
@@ -169,6 +212,20 @@ static void on_timer(int value)
     //azuriranje pozicija objekata ako je igra u toku
     if(game.GetGameState() == gameState::GAME_PLAYING)
     {
+        //pomeranje prvog igraca
+        if(playerOne.getXPos()<=PlayerFieldBorder && playerOneRight)
+            playerOne.setXPos(playerOne.getXPos() + PlayerOnKeyboardMovement);
+        
+        if(playerOne.getXPos()>=-PlayerFieldBorder && playerOneLeft)
+            playerOne.setXPos(playerOne.getXPos() - PlayerOnKeyboardMovement);
+
+        //pomeranje drugog igraca
+        if (playerTwo.getXPos() <= PlayerFieldBorder && playerTwoRight)
+            playerTwo.setXPos(playerTwo.getXPos() + PlayerOnKeyboardMovement);
+        
+        if (playerTwo.getXPos() >= -PlayerFieldBorder && playerTwoLeft)
+            playerTwo.setXPos(playerTwo.getXPos() - PlayerOnKeyboardMovement);
+        
         ball.CheckHeadCollision(playerOne.getXPos(), playerOne.getYPos());
         ball.CheckHeadCollision(playerTwo.getXPos(), playerTwo.getYPos());
         ball.CheckBodyCollision(playerOne.getXPos(), playerOne.getYPos());
@@ -216,8 +273,8 @@ static void on_timer(int value)
         game.SetPlayerAScore(0);
         game.SetPlayerBScore(0);
         timer_active = 0;
-        msecs = 10000;
-        secs = 10;
+        msecs = MsecsDefault;
+        secs = SecsDefault;
         winnerText = (char *)"PLAYER 1 WINS";
     };
     
@@ -228,6 +285,10 @@ static void on_timer(int value)
         game.SetGameState(gameState::GAME_END);
         game.SetPlayerAScore(0);
         game.SetPlayerBScore(0);
+        goal_timer = 101;
+        ball.Reset();
+        playerOne.Reset();
+        playerTwo.Reset();
         timer_active = 0;
         msecs = MsecsDefault;
         secs = SecsDefault;
@@ -299,6 +360,72 @@ static void on_reshape(int width, int height)
     gluPerspective(60, (float)width / height, 1, 2000);
 }
 
+static void initialize(void)
+{
+    //KOD PREUZET SA CASOVA VEZBI
+    
+    /* Objekat koji predstavlja teskturu ucitanu iz fajla. */
+    Image * image;
+
+    /* Postavlja se boja pozadine. */
+    glClearColor(0, 0, 0, 0);
+
+    /* Ukljucuje se testiranje z-koordinate piksela. */
+    glEnable(GL_DEPTH_TEST);
+
+    /* Ukljucuju se teksture. */
+    glEnable(GL_TEXTURE_2D);
+
+    glTexEnvf(GL_TEXTURE_ENV,
+              GL_TEXTURE_ENV_MODE,
+              GL_ADD);
+
+    /*
+     * Inicijalizuje se objekat koji ce sadrzati teksture ucitane iz
+     * fajla.
+     */
+    image = image_init(0, 0);
+
+    /* Kreira se prva tekstura. */
+    image_read(image, FILENAME0);
+
+    /* Generisu se identifikatori tekstura. */
+    glGenTextures(2, names);
+
+    glBindTexture(GL_TEXTURE_2D, names[0]);
+    glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
+                 image->width, image->height, 0,
+                 GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
+
+    /* Kreira se druga tekstura. */
+    image_read(image, FILENAME1);
+
+    glBindTexture(GL_TEXTURE_2D, names[1]);
+    glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D,
+                    GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
+                 image->width, image->height, 0,
+                 GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
+
+    /* Iskljucujemo aktivnu teksturu */
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    /* Unistava se objekat za citanje tekstura iz fajla. */
+    image_done(image);
+}
+
 static void on_display(void)
 {
     /*boja pozadine*/
@@ -325,6 +452,26 @@ static void on_display(void)
     /* Postavlja se boja svih piksela na zadatu boju pozadine. */
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
+    //Iscrtavanje teksture pozadine
+    glDisable(GL_DEPTH_TEST);
+    glBindTexture(GL_TEXTURE_2D, names[0]);
+    glPushMatrix();
+        glColor3f(0.3, 0.8, 1.0);
+        glBegin(GL_QUADS);
+            //Brojke su u brzini rucno prilagodjene
+            glTexCoord2f(0, 0);
+            glVertex3f(-1050, -600, 0);
+            glTexCoord2f(1, 0);
+            glVertex3f(1050, -600, 0);
+            glTexCoord2f(1, 1);
+            glVertex3f(1050, 600, 0);
+            glTexCoord2f(0, 1);
+            glVertex3f(-1050, 600, 0);
+        glEnd();
+    glPopMatrix();
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glEnable(GL_DEPTH_TEST);
+    
     /* Postavlja se vidna tacka. */
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -348,7 +495,7 @@ static void on_display(void)
     //iscrtavanje u slucaju da traje igra
     if(game.GetGameState() == gameState::GAME_PLAYING)
     {    
-        playground.drawField();
+        playground.drawField(names);
         playerOne.drawPlayer();
         playerTwo.drawPlayer();
         ball.drawBall();
@@ -495,12 +642,13 @@ static void WriteInstructions()
     int i;
     
     glRasterPos3f(-600, PlayerAPointsY, PlayerAPointsZ);
-    char s[] = "A-Left D-Right W-Jump ";
+    char s[] = "F1-Left | F3-Right | F2-Jump ";
+    //char s[] = "A-Left D-Right W-Jump ";
     for(i = 0; s[i] != '\0'; i++)
         glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, s[i]);
     
     glRasterPos3f(200, PlayerAPointsY, PlayerAPointsZ);
-    char p[] = "J-Left L-Right I-Jump ";
+    char p[] = "LEFT-Left | RIGHT-Right | UP-Jump ";
     for(i = 0; p[i] != '\0'; i++)
         glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, p[i]);
     

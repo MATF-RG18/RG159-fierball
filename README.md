@@ -10,6 +10,8 @@ Instrukcije za koriscenje:
 	ESC - izlazak iz igre
 	
 	Igrac 1:
-		a - levo, d - desno, w - skok
+		F1 - levo, F3 - desno, F2 - skok
 	Igrac 2:
-		j - levo, l - desno, i - skok
+		levo <- - levo, desno -> - desno, gore - skok
+	
+	Za promenu tajmera i trajanja igre, adaptirati SecsDefault i MsecsDefault u Helpers.h

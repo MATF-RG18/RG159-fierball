@@ -7,8 +7,8 @@ class Playground
 public:
     Playground() {};
 
-    void drawField();
-    void drawGrass();
+    void drawField(GLuint names[]);
+    void drawGrass(GLuint names[]);
     void drawLines();
     void drawGoals();
 };
